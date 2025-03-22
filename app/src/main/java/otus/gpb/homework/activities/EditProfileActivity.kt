@@ -27,27 +27,35 @@ class EditProfileActivity : AppCompatActivity() {
                 isGranted -> {
                     takePhoto(false)
                 }
+
                 !shouldShowRequestPermissionRationale(permission.CAMERA) -> {
                     showRationaleDialog()
                 }
+
                 else -> {}
             }
         }
 
+    private val choosePictureResult =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri != null) {
+                populateImage(uri)
+            }
+        }
+
+
     private fun showRationaleDialog() {
         val permissionDialog = AlertDialog.Builder(this)
-        with (permissionDialog) {
+        with(permissionDialog) {
             setTitle("Доступ к камере")
             setMessage("Разрешите доступ к камере для загрузки фото милого котика")
-            setPositiveButton("Дать доступ") {
-                _, _ ->
+            setPositiveButton("Дать доступ") { _, _ ->
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                     data = Uri.fromParts("package", packageName, null)
                 }
                 startActivity(intent)
             }
-            setNegativeButton("Отмена") {
-                _, _ ->
+            setNegativeButton("Отмена") { _, _ ->
             }
             show()
         }
@@ -107,7 +115,7 @@ class EditProfileActivity : AppCompatActivity() {
     }
 
     private fun choosePicture() {
-
+        choosePictureResult.launch("image/*")
     }
 
     private fun takePhoto(needCheckPermission: Boolean = true) {
@@ -115,14 +123,17 @@ class EditProfileActivity : AppCompatActivity() {
             val isGranted =
                 ContextCompat.checkSelfPermission(this, permission.CAMERA)
             if (isGranted == PackageManager.PERMISSION_GRANTED) {
-                imageView.setImageDrawable(getDrawable(R.drawable.cat))
+                showDefaultImage()
             } else {
                 permissionCamera.launch(permission.CAMERA)
             }
         } else {
-            imageView.setImageDrawable(getDrawable(R.drawable.cat))
+            showDefaultImage()
         }
+    }
 
+    private fun showDefaultImage() {
+        imageView.setImageDrawable(getDrawable(R.drawable.cat))
     }
 
     companion object ImageViewOptions {
